@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Búsqueda de Huéspedes</title>
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <!-- FontAwesome (versión 6 gratuita) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    .light-theme {
+      --bg-color: #E8F5E9;
+      --appbar-bg: #43A047;
+      --appbar-text: #FFFFFF;
+      --text-color: #2E7D32;
+      --button-bg: #2196F3;
+      --input-bg: #C8E6C9;
+      --input-text: #1B5E20;
+      --card-bg: #FFFFFF;
+      --border-color: #388E3C;
+    }
+    .dark-theme {
+      --bg-color: #0F2A19;
+      --appbar-bg: #1B5E20;
+      --appbar-text: #FFFFFF;
+      --text-color: #C8E6C9;
+      --button-bg: #2196F3;
+      --input-bg: #1B3D2F;
+      --input-text: #FFFFFF;
+      --card-bg: #1D2E25;
+      --border-color: #388E3C;
+    }
+    body {
+      background-color: var(--bg-color);
+      transition: background-color 0.3s ease;
+    }
+    .navbar {
+      background-color: var(--appbar-bg) !important;
+    }
+    .navbar-brand, .navbar-text {
+      color: var(--appbar-text) !important;
+    }
+    /* Estilo para el botón y el ícono del tema */
+    #theme-toggle {
+      color: var(--appbar-text) !important;
+      border: 1px solid var(--appbar-text);
+      border-radius: 4px;
+      background-color: transparent;
+      margin-left: 10px;
+      padding: 5px 8px;
+    }
+    #theme-toggle i {
+      color: var(--appbar-text) !important;
+      font-size: 1.2rem;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 2px solid var(--border-color);
+      padding: 20px;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    label, .form-control, .btn {
+      color: var(--text-color) !important;
+    }
+    .form-control {
+      background-color: var(--input-bg) !important;
+      color: var(--input-text) !important;
+    }
+    .btn-primary {
+      background-color: var(--button-bg) !important;
+      border-color: var(--button-bg) !important;
+    }
+    /* Estilos para la notificación debajo del formulario */
+    #notification {
+      margin: 40px auto 0; /* Se coloca más abajo y centrado */
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      font-size: 1.25rem;
+      transition: opacity 0.5s ease;
+      max-width: 400px; /* Ancho máximo reducido */
+      width: 90%;
+    }
+    #notification.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #notification img {
+      width: 60px;
+      height: 60px;
+      margin-right: 20px;
+    }
+  </style>
+</head>
+<body class="light-theme">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="#">Gestión de Huéspedes</a>
+      <div class="ml-auto d-flex align-items-center">
+        {% if online %}
+          <i class="fas fa-wifi mr-3" style="color: blue;" title="Conexión establecida"></i>
+        {% else %}
+          <i class="fas fa-wifi-slash mr-3" style="color: red;" title="Sin conexión a Internet"></i>
+        {% endif %}
+        <!-- Botón para alternar tema -->
+        <button id="theme-toggle" class="btn">
+          <i id="theme-icon" class="fas fa-sun"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <div class="card mx-auto" style="max-width: 500px;">
+      <h2 class="text-center">Buscador de Huéspedes</h2>
+      <form method="POST" action="{{ url_for('index') }}">
+        <div class="form-group">
+          <label for="dni">Ingrese DNI</label>
+          <input type="text" class="form-control" id="dni" name="dni" placeholder="8 dígitos" required maxlength="8">
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Notificación para mostrar mensajes con imagen, justo debajo del formulario -->
+    <div id="notification" class="{% if not get_flashed_messages() %}hidden{% endif %}">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            {% if message == "Esta persona es huésped." %}
+              <img src="{{ url_for('static', filename='assets/usuario.png') }}" alt="Huésped">
+            {% elif message == "Esta persona no es huésped." %}
+              <img src="{{ url_for('static', filename='assets/no_huesped.png') }}" alt="No Huésped">
+            {% else %}
+              <img src="{{ url_for('static', filename='assets/error.png') }}" alt="Error">
+            {% endif %}
+            <span>{{ message }}</span>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const body = document.body;
+      const themeToggle = document.getElementById("theme-toggle");
+      const themeIcon = document.getElementById("theme-icon");
+      
+      // Si no hay tema guardado, se establece 'light' por defecto
+      if(!localStorage.getItem('theme')){
+        localStorage.setItem('theme', 'light');
+      }
+      // Aplica el tema guardado
+      body.className = localStorage.getItem('theme') + "-theme";
+      updateIcon();
+
+      function updateIcon() {
+        if(localStorage.getItem('theme') === 'dark'){
+          themeIcon.classList.remove("fa-sun");
+          themeIcon.classList.add("fa-moon");
+        } else {
+          themeIcon.classList.remove("fa-moon");
+          themeIcon.classList.add("fa-sun");
+        }
+      }
+
+      // Alternar tema
+      themeToggle.addEventListener("click", function() {
+        if(localStorage.getItem('theme') === 'light'){
+          localStorage.setItem('theme', 'dark');
+        } else {
+          localStorage.setItem('theme', 'light');
+        }
+        body.className = localStorage.getItem('theme') + "-theme";
+        updateIcon();
+      });
+
+            // Oculta la notificación después de 5 segundos
+    setTimeout(function() {
+        const notification = document.getElementById("notification");
+        if(notification){
+          notification.classList.add("hidden");
+        }
+      }, 5000);
+    });
+  </script>
+</body>
+</html>
