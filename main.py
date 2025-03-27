@@ -23,7 +23,7 @@ def resource_path(relative_path):
 # Inicialización de Firebase Admin SDK
 # ---------------------------
 # Asegúrate de tener el archivo de credenciales JSON en la carpeta assets o la ruta adecuada.
-cred = credentials.Certificate(resource_path("assets/escaneosqr-firebase-adminsdk-fbsvc-8436162520.json"))
+cred = credentials.Certificate(resource_path("assets/escaneosqr-firebase-adminsdk-fbsvc-eeda2582b1.json"))
 firebase_admin.initialize_app(cred, {
     "databaseURL": "https://escaneosqr-default-rtdb.firebaseio.com"
 })
