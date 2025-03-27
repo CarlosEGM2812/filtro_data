@@ -1,7 +1,8 @@
 import sys
 import os
 import flet as ft
-import pyrebase
+import firebase_admin
+from firebase_admin import credentials, db
 import datetime
 import asyncio
 import json
@@ -19,21 +20,13 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 # ---------------------------
-# Configuración de Firebase para Pyrebase
+# Inicialización de Firebase Admin SDK
 # ---------------------------
-firebase_config = {
-    "apiKey": "AIzaSyBsprf32C7bBC1bK2GmPcpdyagyUvZ6mrU",
-    "authDomain": "escaneosqr.firebaseapp.com",
-    "databaseURL": "https://escaneosqr-default-rtdb.firebaseio.com",
-    "projectId": "escaneosqr",
-    "storageBucket": "escaneosqr.firebasestorage.app",
-    "messagingSenderId": "868107728533",
-    "appId": "1:868107728533:web:58ccc0f18a3883d61dcd9c",
-    "measurementId": "G-N5X9QX2JWC"
-}
-
-firebase = pyrebase.initialize_app(firebase_config)
-db = firebase.database()
+# Asegúrate de tener el archivo de credenciales JSON en la carpeta assets o la ruta adecuada.
+cred = credentials.Certificate(resource_path("assets/escaneosqr-firebase-adminsdk-fbsvc-8436162520.json"))
+firebase_admin.initialize_app(cred, {
+    "databaseURL": "https://escaneosqr-default-rtdb.firebaseio.com"
+})
 
 # ---------------------------
 # Función para verificar la conexión a Internet
@@ -165,11 +158,11 @@ def toggle_theme(e, page: ft.Page, theme_button: ft.IconButton, appbar: ft.AppBa
 # ---------------------------
 def obtener_usuarios():
     """
-    Obtiene la lista de usuarios desde Firebase (usando Pyrebase).
+    Obtiene la lista de usuarios desde Firebase (usando Firebase Admin SDK).
     Retorna (usuarios, True) si la lectura fue exitosa; de lo contrario, retorna (None, False).
     """
     try:
-        usuarios = db.child("usuarios").get().val()
+        usuarios = db.reference("usuarios").get()
         return usuarios, True
     except Exception as e:
         print("Error al obtener datos de Firebase:", e)
@@ -251,7 +244,7 @@ def verificar_huesped(e, dni_input: ft.TextField, page: ft.Page, alert_message: 
 # ---------------------------
 def main(page: ft.Page):
     """
-    Construye la UI de la aplicación con Flet.
+    Construye la UI de la aplicación con Flet en entorno web.
     """
     # Cambiar el ícono de la ventana a tu logo personalizado
     page.window_icon = resource_path("assets/mi_icono.ico")
