@@ -59,6 +59,7 @@ async def update_connectivity_status(page: ft.Page, connectivity_icon: ft.Icon):
     """
     while True:
         online = check_internet()
+        print("¿En línea?", online)  # Para depuración en consola
         if online:
             connectivity_icon.icon = ft.Icons.WIFI
             connectivity_icon.tooltip = "Conexión establecida"
@@ -362,4 +363,5 @@ if __name__ == "__main__":
     ft.app(
         target=main,
         assets_dir="assets",
+        view=ft.WEB_BROWSER
     )
